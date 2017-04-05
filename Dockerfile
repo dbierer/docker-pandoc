@@ -1,16 +1,18 @@
 FROM haskell:8
-MAINTAINER Jan Philip Bernius <janphilip@bernius.net>
+MAINTAINER Cal Evans <cal@calevans.com>
 
 # Set to Non-Interactive
 ENV DEBIAN_FRONTEND noninteractive
 
-# Install all TeX and LaTeX dependences
+# Install all TeX, LaTeX dependences, as well as other needed utilities
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends apt-utils && \ 
     apt-get install --yes --no-install-recommends \
             make \
             git \
             wget \
+            xz-utils \
+            dos2unix \
             apt-transport-https \
             lsb-release \
             ca-certificates \
@@ -27,7 +29,12 @@ RUN apt-get update && \
             texlive-bibtex-extra \
             biber \
             fontconfig \
-            texlive-xetex && \
+            texlive-xetex \
+            fontconfig \
+            libfreetype6 \
+            libx11-6 \
+            libxext6 \
+            libxrender1 && \           
   apt-get autoclean && \
   apt-get --purge --yes autoremove && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -60,16 +67,26 @@ RUN wget -O /tmp/kindlegen.tar.gz https://kindlegen.s3.amazonaws.com/kindlegen_l
     cd ~ && \
     rm -rf /tmp/* 
 
+RUN cd /tmp && \
+    wget http://download.gna.org/wkhtmltopdf/0.12/0.12.3/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz && \
+    xz -d wkhtmltox-0.12.3_linux-generic-amd64.tar.xz && \
+    tar -xf wkhtmltox-0.12.3_linux-generic-amd64.tar && \
+    mv wkhtmltox/bin/* /usr/local/bin/ && \
+    rm -rf /tmp/* 
+
+
 # Set the locale
 RUN dpkg-reconfigure locales
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
+#
+# Only needed for wkhtmltopdf
+#
+
 # Export the output data
 WORKDIR /data
 VOLUME ["/data"]
 
-ENTRYPOINT ["pandoc"]
-
-CMD ["--help"]
+ENTRYPOINT ["/data/buildbook.sh"]

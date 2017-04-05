@@ -1,66 +1,49 @@
 # Pandoc Docker container with XeLaTeX
 
-[![License][license]][license_link]
-[![Docker Stars][docker_starts]][docker_repo]
-[![Docker Pulls][docker_pulls]][docker_repo]
+## This fork is mantained by Cal Evans <cal@calevans.com>
 
-Provides a Docker container with [`Pandoc`](http://pandoc.org/) and [`LaTeX`](https://www.latex-project.org) installed.
+This project will take a specifically formatted book project and create :
 
+- HTML
+- PDF
+- EPUB
+- MOBI (Kindle)
+
+# Requrements
+For this project to work, several requirements  must be met.
+
+## Directories
+The following directories are required to be present in the root directory.
+
+- manuscript
+- images
+- final
+- css *
+
+* Optional. If present, it will be used, otherwise, the process will continue without it. 
+
+## Files
+The following files are required for the system to operate.
+
+- `manuscript/book.txt`
+A list of the chapter files in the order they are to be presented
+
+- `manuscript/book.info`
+All the info about the book that is necessary to create the various files but cannot be derived from the other files.
+
+- `images/cover.[png|jpg]`
+If it exists, this is the cover of the ebook. Otherwise, no cover will be processed.
+
+# Process
+When the container is properly executed, it will run `./buildbook.sh`. This is the starting point. `./builbook.sh` will check to make sure that all necessary files are present. It will then generate the output in all three formats. 
+
+
+## Linux/macOS
 ```
-$ docker run --rm -v `pwd`:/data jpbernius/pandoc
-```
-```
-pandoc [OPTIONS] [FILES]
-Input formats:  commonmark, docbook, docx, epub, haddock, html, json*, latex,
-               markdown, markdown_github, markdown_mmd, markdown_phpextra,
-               markdown_strict, mediawiki, native, odt, opml, org, rst, t2t,
-               textile, twiki
-               [ *only Pandoc's JSON version of native AST]
-Output formats: asciidoc, beamer, commonmark, context, docbook, docx, dokuwiki,
-               dzslides, epub, epub3, fb2, haddock, html, html5, icml, json*,
-               latex, man, markdown, markdown_github, markdown_mmd,
-               markdown_phpextra, markdown_strict, mediawiki, native, odt,
-               opendocument, opml, org, pdf**, plain, revealjs, rst, rtf, s5,
-               slideous, slidy, tei, texinfo, textile
-               [**for pdf output, use latex or beamer and -o FILENAME.pdf]
+$ docker run --rm -v `pwd`:/data pandoc
 ```
 
----
-
-## Example
-Generate HTML from Markdown
+## Windows
 ```
-$ docker run --rm -v `pwd`:/data jpbernius/pandoc -o example.html example.md
+docker run --rm -v %cd%:/data pandoc
 ```
----
-Generate PDF from Markdown
-```
-$ docker run --rm -v `pwd`:/data jpbernius/pandoc -o example.html example.md
-```
-
----
-
-## Packages
-
-| LaTeX                         | Pandoc                     |
-| ----------------------------- | -------------------------- |
-| `lmodern`                     | `pandoc`                   |
-| `texlive-latex-base`          | `pandoc-citeproc`          |
-| `texlive-fonts-recommended`   | `pandoc-citeproc-preamble` |
-| `texlive-generic-recommended` | `pandoc-crossref`          |
-| `texlive-lang-english`        |                            |
-| `texlive-lang-german`         |                            |
-| `latex-xcolor`                |                            |
-| `texlive-math-extra`          |                            |
-| `texlive-latex-extra`         |                            |
-| `texlive-bibtex-extra`        |                            |
-| `biber`                       |                            |
-| `fontconfig`                  |                            |
-| `texlive-xetex`               |                            |
-
-
-[license]: https://img.shields.io/github/license/jpbernius/docker-pandoc.svg?maxAge=2592000
-[license_link]: https://github.com/jpbernius/docker-pandoc/blob/master/LICENSE
-[docker_repo]: https://hub.docker.com/r/jpbernius/pandoc/
-[docker_starts]: https://img.shields.io/docker/stars/jpbernius/pandoc.svg
-[docker_pulls]: https://img.shields.io/docker/pulls/jpbernius/pandoc.svg
