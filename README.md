@@ -14,6 +14,14 @@ This project will take a Markdown formatted book project and create :
 - EPUB
 - MOBI (Kindle)
 
+# Build
+
+To build this container, I use the following in this repo's root.
+
+```
+$ docker build --force-rm -squash --tag buildbook ./
+```
+
 # Requirements
 For this project to work, several requirements  must be met.
 
@@ -76,10 +84,10 @@ When the container is properly executed, it will run `./buildbook.sh`. This is t
 
 ## Linux/macOS
 ```
-$ docker run --rm -v `pwd`:/data pandoc
+$ docker run --rm -v `pwd`:/data buildbook
 ```
 
 ## Windows
 ```
-docker run --rm -v %cd%:/data pandoc
+docker run --rm -v %cd%:/data buildbook
 ```
