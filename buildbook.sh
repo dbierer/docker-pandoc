@@ -1,37 +1,41 @@
 #!/bin/bash
+#
+# Notify the user we are doing something
+#
+echo " "
+echo "buildBook.sh"
+echo "By: Cal Evans <cal@calevans.com>"
+echo "License: MIT"
+echo "URL: https://blog.calevans.com"
+echo " "
+
+#
+# Setup
+# Here is where to find things
+#
+ROOTDIR=/data
 WORKDIR=/tmp
-OUTPUTDIR=/data/output
-MANUSCRIPTDIR=/data/manuscript
-TEMPLATESDIR=/data/pandoc 
+OUTPUTDIR=$ROOTDIR/output
+MANUSCRIPTDIR=$ROOTDIR/manuscript
+TEMPLATESDIR=$ROOTDIR/pandoc 
+CONFIGDIR=$ROOTDIR/config
+
+
+#
+# We need these set later on so let's initialize them now. 
+#
 COPYRIGHTPAGE=""
 TOCSWITCH=""
 METADATASWITCH=""
 
 #
-# Pull in Book Info if it's available.
-# Book.info is just a place to set book specific variables like FINALNAMEROOT 
-# (File name root) and the current version.
+# BEGIN PROCESSING
 #
-if [ -f /data/book.info ]
-then
-    dos2unix /data/book.info
-    source /data/book.info
-fi
-
-if [ -e "/data/book.yaml" ]
-then
-    dos2unix /data/book.yaml
-    METADATASWITCH="/data/book.yaml"
-fi
-
-#
-# Setup
+# If the output directory exists, delete it. If this causes a problem, bail.
 #
 if [ -d "$OUTPUTDIR" ]; then
     rm -rf $OUTPUTDIR
 fi
-
-mkdir $OUTPUTDIR
 
 if [ ! $? -eq 0 ]
 then
@@ -39,27 +43,51 @@ then
     echo "Error:"
     echo "Deleting the output directory."
     echo " "
-    exit 1;
+    exit 1
+fi
+
+mkdir $OUTPUTDIR
+
+
+
+#
+# Process book.yaml
+# book.yaml is required.
+#
+if [ -f $CONFIGDIR/book.yaml ]
+then
+    dos2unix $CONFIGDIR/book.yaml 
+    php -r 'echo yaml_emit(yaml_parse_file("'$CONFIGDIR/book.yaml'")["book"]);' > $WORKDIR/book.yaml
+    php -r 'foreach (yaml_parse_file("'$CONFIGDIR/book.yaml'")["variables"] as $key=>$value) {echo $key."=".$value."\n";}' > $WORKDIR/book.sh
+    source $WORKDIR/book.sh
+    METADATASWITCH="$WORKDIR/book.yaml"
+else
+    echo " "
+    echo "Error:"
+    echo "All projects are required to have a $CONFIGDIR/book.yaml file."
+    echo " "
+    exit 2
 fi
 
 
 #
 # Make sure all files have the proper line endings
 #
-dos2unix book.txt
-dos2unix manuscript/*.md
+dos2unix $ROOTDIR/book.txt
+dos2unix $ROOTDIR/manuscript/*.md
 
 
 #
-# Build the book
+# Concatenate the book into on big MarkDown file.
 #
-for FILENAME in $(cat book.txt)
+for FILENAME in $(cat $ROOTDIR/book.txt)
 do
-    cat manuscript/$FILENAME >> $WORKDIR/temp.md
-    echo " " >> $WORKDIR/temp.md
-    echo " " >> $WORKDIR/temp.md
-    echo " " >> $WORKDIR/temp.md
+    cat $MANUSCRIPTDIR/$FILENAME >> $WORKDIR/$FINALNAMEROOT.md
+    echo " " >> $WORKDIR/$FINALNAMEROOT.md
+    echo " " >> $WORKDIR/$FINALNAMEROOT.md
+    echo " " >> $WORKDIR/$FINALNAMEROOT.md
 done
+
 
 #
 # If we have a template for the copyright page, generate it. This will 
@@ -75,6 +103,7 @@ then
     COPYRIGHTPAGE="$MANUSCRIPTDIR/copyright.md"
 fi
 
+
 #
 # If we have a custom template for the table of contents, set the switch to 
 # use it. Otherwise, the default template will be used.
@@ -85,30 +114,71 @@ then
 fi
 
 
-
 #
 # Run the conversions
 #
+# Make the HTML Cover
 pandoc -o $WORKDIR/cover.html -t html $MANUSCRIPTDIR/title.md
-pandoc -o $WORKDIR/body.html  -t html $WORKDIR/temp.md
+if [ ! $? -eq 0 ]
+    then
+    exit 3
+fi
 
+
+# Convert the MarkDown body file into HTML
+pandoc -o $WORKDIR/body.html  -t html $WORKDIR/$FINALNAMEROOT.md
+if [ ! $? -eq 0 ]
+    then
+    exit 4
+fi
+# Make the Table of Contents for the PDF
 pandoc -o $WORKDIR/toc.html $TOCSWITCH --standalone --toc -t html $WORKDIR/body.html
+if [ ! $? -eq 0 ]
+    then
+    exit 5
+fi
+# Build the standalone HTML that is the basis for the PDF
 pandoc -o $WORKDIR/$FINALNAMEROOT.html  \
        -H /data/manuscript/css/style.css \
        --standalone \
        -t html \
        $WORKDIR/cover.html $COPYRIGHTPAGE $WORKDIR/toc.html $WORKDIR/body.html
-wkhtmltopdf --quiet $WORKDIR/$FINALNAMEROOT.html $WORKDIR/$FINALNAMEROOT.pdf 
-wkhtmltoimage --height 768 --width 1024 --quality 100  --encoding UTF-8 $WORKDIR/cover.html $WORKDIR/$FINALNAMEROOT.jpg
-#
-# My goal was to convert the MD directly into epub. That doesn't seem to work 
-# well. So I'm converting from HTML. But I can't get the TOC to generate. 
-#
+if [ ! $? -eq 0 ]
+    then
+    exit 6
+fi
+
+# Make the PDF from the HTML
+wkhtmltopdf --quiet $WORKDIR/$FINALNAMEROOT.html $WORKDIR/$FINALNAMEROOT.pdf
+if [ ! $? -eq 0 ]
+    then
+    exit 7
+fi 
+# Make a cover image for the EPUB based on the cover.html we just generated
+wkhtmltoimage --height 1600 --width 1000 --quality 100 --encoding UTF-8 $WORKDIR/cover.html $WORKDIR/$FINALNAMEROOT.jpg
+if [ ! $? -eq 0 ]
+    then
+    exit 8
+fi
+
+# Make the EPUB
 pandoc -S -o $WORKDIR/$FINALNAMEROOT.epub \
        --epub-cover-image=$WORKDIR/$FINALNAMEROOT.jpg \
-       $METADATASWITCH $COPYRIGHTPAGE $WORKDIR/temp.md
+       $METADATASWITCH $COPYRIGHTPAGE $WORKDIR/$FINALNAMEROOT.md
+if [ ! $? -eq 0 ]
+    then
+    exit 9
+fi
+
+# Make the kindle
+kindlegen -verbose -c1 -o $FINALNAMEROOT.mobi $WORKDIR/$FINALNAMEROOT.epub
+if [ ! $? -eq 0 ]
+    then
+    exit 10
+fi
 
 
+# Copy the important stuff to the output dir
 #
 # DO NOT SCREW WITH THIS!
 # Docker/Windows 10/pandoc seem to have an issue. If you build the files on 
@@ -116,25 +186,20 @@ pandoc -S -o $WORKDIR/$FINALNAMEROOT.epub \
 # created is not owned by anyone. So you have to reboot windows before you can 
 # delete it. By building it inside the docker container's filesystem, you  
 # don't have this problem. pandoc has never failed, but even if it did, the  
-# corrupted sfile would be ephemeral.
+# corrupted files will be ephemeral.
 #
-mv $WORKDIR/$FINALNAMEROOT.epub $OUTPUTDIR
-mv $WORKDIR/$FINALNAMEROOT.html $OUTPUTDIR
-mv $WORKDIR/$FINALNAMEROOT.pdf $OUTPUTDIR
-mv $WORKDIR/$FINALNAMEROOT.jpg $OUTPUTDIR
-
-#
-# DEBUG ONLY
-#
-cd $OUTPUTDIR
-mkdir work
-cd work
-cp $OUTPUTDIR/$FINALNAMEROOT.epub .
-unzip $FINALNAMEROOT.epub
+cp $WORKDIR/$FINALNAMEROOT.epub $OUTPUTDIR
+cp $WORKDIR/$FINALNAMEROOT.html $OUTPUTDIR
+cp $WORKDIR/$FINALNAMEROOT.pdf $OUTPUTDIR
+cp $WORKDIR/$FINALNAMEROOT.jpg $OUTPUTDIR
+cp $WORKDIR/$FINALNAMEROOT.mobi $OUTPUTDIR
 
 #
 # Cleanup
 # This is mainly for when I am working in the docker image itself. It's 
 # useless if you are running the Docker container directly on a book.
+# On the other hand, it doesn't hurt anything.
 #
 rm -rf $WORKDIR/*  
+
+exit 0
