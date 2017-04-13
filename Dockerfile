@@ -4,38 +4,36 @@ MAINTAINER Cal Evans <cal@calevans.com>
 # Set to Non-Interactive
 ENV DEBIAN_FRONTEND noninteractive
 
-# Install all TeX, LaTeX dependences, as well as other needed utilities
+# Install EVERYTHING
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends apt-utils && \ 
     apt-get install --yes --no-install-recommends \
-            make \
-            git \
-            wget \
-            xz-utils \
-            dos2unix \
             apt-transport-https \
-            lsb-release \
+            biber \
             ca-certificates \
+            dos2unix \
+            fontconfig \
+            git \
+            latex-xcolor \
+            libfreetype6 \
+            libxrender1 \           
+            libxext6 \
+            libx11-6 \
             locales \
             lmodern \
-            texlive-latex-base \
+            lsb-release \
+            make \
+            texlive-bibtex-extra \
             texlive-fonts-recommended \
             texlive-generic-recommended \
             texlive-lang-english \
             texlive-lang-german \
-            latex-xcolor \
-            texlive-math-extra \
+            texlive-latex-base \
             texlive-latex-extra \
-            texlive-bibtex-extra \
-            biber \
-            fontconfig \
+            texlive-math-extra \
             texlive-xetex \
-            fontconfig \
-            libfreetype6 \
-            libx11-6 \
-            libxext6 \
-            libxrender1 && \           
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+            wget \
+            xz-utils && \
     wget -q -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
     echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list && \
     apt-get update && \
@@ -45,9 +43,10 @@ RUN apt-get update && \
             php7.1-zip \
             php-yaml \
             php7.1-xml && \
-    apt-get autoclean && \
+    apt-get --yes autoclean && \
     apt-get --purge --yes autoremove && \
-    cabal update && cabal install \
+    cabal update && \
+    cabal install \
     pandoc \
     pandoc-citeproc \
     pandoc-citeproc-preamble \
@@ -64,16 +63,16 @@ RUN apt-get update && \
     cd /tmp && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
-
-# Set the locale
-#RUN dpkg-reconfigure locales
-#ENV LANG en_US.UTF-8
-#ENV LANGUAGE en_US:en
-#ENV LC_ALL en_US.UTF-8
-
+#
+# Move BuildBook into place.
+#
 COPY ./buildbook.sh /usr/local/bin
+
 # Export the output data
 WORKDIR /data
 VOLUME ["/data"]
 
+#
+# Set the Entry Point
+#
 ENTRYPOINT ["buildbook.sh"]
