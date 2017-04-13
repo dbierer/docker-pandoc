@@ -43,6 +43,7 @@ RUN apt-get update && \
             php7.1 \
             php7.1-curl \
             php7.1-zip \
+            php-yaml \
             php7.1-xml && \
     apt-get autoclean && \
     apt-get --purge --yes autoremove && \
@@ -55,24 +56,24 @@ RUN apt-get update && \
     cd /tmp && \
     tar -zxvf kindlegen.tar.gz && \
     mv /tmp/kindlegen /usr/local/bin && \
-    cd ~ && \
-    rm -rf /tmp/* && \
     cd /tmp && \
     wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.3/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz && \
     xz -d wkhtmltox-0.12.3_linux-generic-amd64.tar.xz && \
     tar -xf wkhtmltox-0.12.3_linux-generic-amd64.tar && \
     mv wkhtmltox/bin/* /usr/local/bin/ && \
+    cd /tmp && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
 
 # Set the locale
-RUN dpkg-reconfigure locales
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+#RUN dpkg-reconfigure locales
+#ENV LANG en_US.UTF-8
+#ENV LANGUAGE en_US:en
+#ENV LC_ALL en_US.UTF-8
 
+COPY ./buildbook.sh /usr/local/bin
 # Export the output data
 WORKDIR /data
 VOLUME ["/data"]
 
-ENTRYPOINT ["/data/buildbook.sh"]
+ENTRYPOINT ["buildbook.sh"]
