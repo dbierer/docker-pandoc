@@ -38,7 +38,14 @@ The following directories are required to be present in the root directory.
 The following files are required for the system to operate.
 
 - `book.txt`
-A list of the chapter files in the order they are to be presented
+A list of the chapter files in the order they are to be presented. These are the files names of the files in manuscript. You do not need to include the manuscript directory name, just the name of the file.extension. 
+
+```
+chap01.md
+chap02.md
+chap03.md
+```
+
 
 - `pandoc/toc.html`
 **OPTIONAL** If you are familiar with pandoc and you want to control the text surrounding the table of contents that is generated for the PDF, you can place a file in the `pandoc` directory named `toc.html`. It is up to you to understand what can go in this file. Here is a sample:
