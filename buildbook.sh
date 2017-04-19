@@ -7,7 +7,6 @@ echo "buildBook.sh"
 echo "By: Cal Evans <cal@calevans.com>"
 echo "License: MIT"
 echo "URL: https://blog.calevans.com"
-echo " "
 
 #
 # Setup
@@ -54,33 +53,37 @@ mkdir $OUTPUTDIR
 # Process book.yaml
 # book.yaml is required.
 #
-if [ -f $CONFIGDIR/book.yaml ]
+if [ -f $ROOTDIR/book.yaml ]
 then
-    dos2unix $CONFIGDIR/book.yaml 
-    php -r 'echo yaml_emit(yaml_parse_file("'$CONFIGDIR/book.yaml'")["book"]);' > $WORKDIR/book.yaml
-    php -r 'foreach (yaml_parse_file("'$CONFIGDIR/book.yaml'")["variables"] as $key=>$value) {echo $key."=".$value."\n";}' > $WORKDIR/book.sh
+    dos2unix -q  $ROOTDIR/book.yaml 
+    php -r 'echo yaml_emit(yaml_parse_file("'$ROOTDIR/book.yaml'")["book"]);' > $WORKDIR/book.yaml
+    php -r 'foreach (yaml_parse_file("'$ROOTDIR/book.yaml'")["manuscript"] as $key=>$value) {echo $value."\n";}' > $WORKDIR/book.txt   
+    php -r 'foreach (yaml_parse_file("'$ROOTDIR/book.yaml'")["variables"] as $key=>$value) {echo $key."=".$value."\n";}' > $WORKDIR/book.sh
     source $WORKDIR/book.sh
     METADATASWITCH="$WORKDIR/book.yaml"
 else
     echo " "
     echo "Error:"
-    echo "All projects are required to have a $CONFIGDIR/book.yaml file."
+    echo "All projects are required to have a $ROOTDIR/book.yaml file."
     echo " "
     exit 2
 fi
 
+echo "Filename Root :"$FINALNAMEROOT
+echo "Version :" $VERSION
+echo " ";
 
 #
 # Make sure all files have the proper line endings
 #
-dos2unix $ROOTDIR/book.txt
-dos2unix $ROOTDIR/manuscript/*.md
+dos2unix -q  $WORKDIR/book.txt
+dos2unix -q  $ROOTDIR/manuscript/*.md
 
 
 #
 # Concatenate the book into on big MarkDown file.
 #
-for FILENAME in $(cat $ROOTDIR/book.txt)
+for FILENAME in $(cat $WORKDIR/book.txt)
 do
     cat $MANUSCRIPTDIR/$FILENAME >> $WORKDIR/$FINALNAMEROOT.md
     echo " " >> $WORKDIR/$FINALNAMEROOT.md
@@ -172,11 +175,11 @@ fi
 
 # Make the kindle
 kindlegen -verbose -c1 -o $FINALNAMEROOT.mobi $WORKDIR/$FINALNAMEROOT.epub
-if [ ! $? -eq 0 ]
-    then
-    exit 10
-fi
 
+#
+# I don't bail here if kindlegen returns an exit code but it will return an 
+# exit code even if it completes successfully but there were issues.
+#
 
 # Copy the important stuff to the output dir
 #

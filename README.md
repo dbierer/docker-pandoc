@@ -32,7 +32,7 @@ The following directories are required to be present in the root directory.
 - config
 - pandoc *
 
-* This is an optional directory used to store templates. If the templates do not exist, the program will proceed without them.
+  * The pandoc directory is optional. It holds a couple of specific pandoc templates. If the templates do not exist, the program will proceed without them.
 
 ## Files
 The following files are required for the system to operate.
@@ -45,6 +45,9 @@ chap01.md
 chap02.md
 chap03.md
 ```
+
+- `manuscript/title.md`
+This is the title page of the book. It can be MD and include HTML. 
 
 
 - `pandoc/toc.html`
