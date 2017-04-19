@@ -37,14 +37,44 @@ The following directories are required to be present in the root directory.
 ## Files
 The following files are required for the system to operate.
 
-- `book.txt`
-A list of the chapter files in the order they are to be presented. These are the files names of the files in manuscript. You do not need to include the manuscript directory name, just the name of the file.extension. 
-
+- `book.yaml`
+All the info about the book that is necessary to create the various files but cannot be derived from the other files. This is divided into three sections, `variables`, `book` and `manuscript`Here is a sample:
+    
 ```
-chap01.md
-chap02.md
-chap03.md
+---
+variables:
+  FINALNAMEROOT: life_badges_by_cal_evans
+  VERSION: 1.0.2
+  COVERGRAPHIC: cover.png
+book:
+  title:
+    type: main
+    text: Life Badges
+  creator:
+    role: author
+    text: Cal Evans
+  publisher:  E.I.C.C., Inc.
+  rights: © 2017 E.I.C.C., Inc. All Rights Reserved
+  language: en_US.UTF-8
+manuscript:
+  - foreword.md
+  - intro.md
+  - learn.md
+  - humility.md
+  - be_a_better_person.md
+  - be_a_better_developer.md
+  - create_something.md
+  - help_someone.md
+  - greatness.md
+  - leadership.md
+  - inspire.md
+  - conclusion.md
+  - 99.md  
+...
 ```
+`variables` is dumped into a file and sourced by the script. The variables at that point are available in the script.
+`book` is dumped into `book.yaml` and is used in the creation of the epub file.
+`manuscript` is a list of the files in the order they should appear. These are the file names as they appear in the `manuscript/` directory.
 
 - `manuscript/title.md`
 This is the title page of the book. It can be MD and include HTML. 
@@ -62,27 +92,6 @@ $toc$
 -- `pandoc/copyright.html`
 **OPTIONAL** This is not a pandoc specific file, it is just the file that will be used as a template for your copyright page if it exists. If it exists, we will try to replace `<!--DATEPUBLISHED-->` and `<!--VERSION-->` if they exist. Use this file to put any boilerplate you want on the copyright page. 
 
-- `config/bookinfo.yaml`
-All the info about the book that is necessary to create the various files but cannot be derived from the other files. This is divided into two sections, `variables` and `book`. Here is a sample:
-
-```
----
-variables:
-  FINALNAMEROOT: life_badges_by_cal_evans
-  VERSION: 1.0.2
-book:
-  title:
-    type: main
-    text: Life Badges
-  creator:
-    role: author
-    text: Cal Evans
-  publisher:  E.I.C.C., Inc.
-  rights: © 2017 E.I.C.C., Inc. All Rights Reserved
-  language: en_US.UTF-8
-...
-```
-
 The `variables` section will be processed and a files containing `KEY=VALUE` pairs will be created. This will then be sourced so that the values will be available to the script.
 
 The `book` section is what is passed to the EPUB generator. It is parsed and created as a file in the working directory and included in the EBPUB generation process.
@@ -94,7 +103,7 @@ When the container is properly executed, it will run `./buildbook.sh`. This is t
 
 ## Linux/macOS
 ```
-$ docker run --rm -v `pwd`:/data buildbook
+$ docker run --rm -v `$PWD`:/data buildbook
 ```
 
 ## Windows
