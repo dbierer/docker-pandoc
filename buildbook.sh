@@ -158,7 +158,7 @@ if [ ! $? -eq 0 ]
     exit 7
 fi 
 # Make a cover image for the EPUB based on the cover.html we just generated
-wkhtmltoimage --height 1600 --width 1000 --quality 100 --encoding UTF-8 $WORKDIR/cover.html $WORKDIR/$FINALNAMEROOT.jpg
+wkhtmltoimage --quality 100 --encoding UTF-8 $WORKDIR/cover.html $WORKDIR/$FINALNAMEROOT.jpg
 if [ ! $? -eq 0 ]
     then
     exit 8
@@ -167,6 +167,7 @@ fi
 # Make the EPUB
 pandoc -S -o $WORKDIR/$FINALNAMEROOT.epub \
        --epub-cover-image=$WORKDIR/$FINALNAMEROOT.jpg \
+       --to=epub3 \
        $METADATASWITCH $COPYRIGHTPAGE $WORKDIR/$FINALNAMEROOT.md
 if [ ! $? -eq 0 ]
     then
@@ -203,6 +204,6 @@ cp $WORKDIR/$FINALNAMEROOT.mobi $OUTPUTDIR
 # useless if you are running the Docker container directly on a book.
 # On the other hand, it doesn't hurt anything.
 #
-rm -rf $WORKDIR/*  
+#rm -rf $WORKDIR/*  
 
 exit 0
