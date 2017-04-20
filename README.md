@@ -110,3 +110,6 @@ $ docker run --rm -v `$PWD`:/data buildbook
 ```
 docker run --rm -v %cd%:/data buildbook
 ```
+
+# Version History
+- 1.0.0 First Release
