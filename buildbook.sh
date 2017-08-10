@@ -7,13 +7,15 @@ echo "buildBook.sh"
 echo "By: Cal Evans <cal@calevans.com>"
 echo "License: MIT"
 echo "URL: https://blog.calevans.com"
+echo "Usage: "
+echo "buildbook.sh [rootdir] [workdir]"
 
 #
 # Setup
 # Here is where to find things
 #
-ROOTDIR=/data
-WORKDIR=/tmp
+ROOTDIR=$1
+WORKDIR=$2
 OUTPUTDIR=$ROOTDIR/output
 MANUSCRIPTDIR=$ROOTDIR/manuscript
 TEMPLATESDIR=$ROOTDIR/pandoc 
@@ -142,7 +144,7 @@ if [ ! $? -eq 0 ]
 fi
 # Build the standalone HTML that is the basis for the PDF
 pandoc -o $WORKDIR/$FINALNAMEROOT.html  \
-       -H /data/manuscript/css/style.css \
+       -H $ROOTDIR/manuscript/css/style.css \
        --standalone \
        -t html \
        $WORKDIR/cover.html $COPYRIGHTPAGE $WORKDIR/toc.html $WORKDIR/body.html
